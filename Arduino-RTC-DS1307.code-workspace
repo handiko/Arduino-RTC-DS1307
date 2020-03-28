@@ -2,6 +2,10 @@
 	"folders": [
 		{
 			"path": "RTC-DS1307-1"
+		},
+		{
+			"name": "RTC-DS1307-SetTime",
+			"path": "RTC-DS1307-SetTime"
 		}
 	],
 	"settings": {}
