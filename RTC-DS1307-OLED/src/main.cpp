@@ -29,6 +29,7 @@ void print2digits(int number);
 void printTime(tmElements_t &_time);
 
 bool initOLED(Adafruit_SSD1306 *_oled, uint16_t _oled_address);
+void printTimeOLED(Adafruit_SSD1306 *_oled, tmElements_t &_time);
 
 void setup()
 {
@@ -63,10 +64,7 @@ void loop()
     Serial.println();
   }
 
-  oled.clearDisplay();
-  oled.setCursor(0, 0);
-  oled.println(tm.Second);
-  oled.display();
+  printTimeOLED(&oled, tm);
 
   delay(900);
 }
@@ -165,4 +163,49 @@ bool initOLED(Adafruit_SSD1306 *_oled, uint16_t _oled_address)
   {
     return false;
   }
+}
+
+void printTimeOLED(Adafruit_SSD1306 *_oled, tmElements_t &_time)
+{
+  const char *dayName[7] = {
+      "Sunday", "Monday", "Tuesday", "Wednesday",
+      "Thursday", "Friday", "Saturday"};
+
+  _oled->clearDisplay();
+
+  _oled->setTextSize(1);
+  _oled->setCursor(0, 0);
+  _oled->print(F("   Date:"));
+  if (_time.Day >= 0 && _time.Day < 10)
+    _oled->print('0');
+  _oled->print(_time.Day);
+  _oled->print(F("/"));
+  if (_time.Month >= 0 && _time.Month < 10)
+    _oled->print('0');
+  _oled->print(_time.Month);
+  _oled->print(F("/"));
+  _oled->println(tmYearToCalendar(_time.Year));
+  _oled->println();
+
+  _oled->setTextSize(2);
+  _oled->print(F(" "));
+  if (_time.Hour >= 0 && _time.Hour < 10)
+    _oled->print('0');
+  _oled->print(_time.Hour);
+  _oled->print(F(":"));
+  if (_time.Minute >= 0 && _time.Minute < 10)
+    _oled->print('0');
+  _oled->print(_time.Minute);
+  _oled->print(F(":"));
+  if (_time.Second >= 0 && _time.Second < 10)
+    _oled->print('0');
+  _oled->println(_time.Second);
+  _oled->setTextSize(1);
+  _oled->println(" ");
+
+  _oled->print(F("     Day:"));
+  _oled->print((char *)dayName[_time.Wday]);
+  _oled->println();
+
+  _oled->display();
 }
