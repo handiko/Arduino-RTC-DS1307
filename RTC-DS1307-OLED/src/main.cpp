@@ -4,6 +4,15 @@
 #include <TimeLib.h>
 #include <DS1307RTC.h>
 
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_ADDRESS 0x3C
+#define OLED_RST 4
+
 const char *monthName[12] = {
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
@@ -11,42 +20,53 @@ const char *monthName[12] = {
 DS1307RTC ds1307 = DS1307RTC();
 tmElements_t tm;
 
+Adafruit_SSD1306 oled = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RST);
+
 bool setInitRTC(DS1307RTC *_rtc, tmElements_t &_time);
 bool getTime(const char *str);
 bool getDate(const char *str);
 void print2digits(int number);
-bool printTime(DS1307RTC *_rtc, tmElements_t &_time);
+void printTime(tmElements_t &_time);
+
+bool initOLED(Adafruit_SSD1306 *_oled, uint16_t _oled_address);
 
 void setup()
 {
-  // put your setup code here, to run once:
   Serial.begin(9600);
+  Serial.println(__FILE__);
+  Serial.println(__DATE__);
+  Serial.println(__TIME__);
+  Serial.println(F(" "));
 
-  if (setInitRTC(&ds1307, tm))
-  {
-    Serial.print("DS1307 configured Time=");
-    Serial.print(__TIME__);
-    Serial.print(", Date=");
-    Serial.println(__DATE__);
-  }
-  else
-  {
-    Serial.println("DS1307 Communication Error :-{");
-    Serial.println("Please check your circuitry");
-  }
-}
+  initOLED(&oled, OLED_ADDRESS);
 
-void loop()
-{
-  if (printTime(&ds1307, tm))
+  if (ds1307.read(tm))
   {
-    ;
+    printTime(tm);
   }
   else
   {
     Serial.println("DS1307 read error!  Please check the circuitry.");
     Serial.println();
   }
+}
+
+void loop()
+{
+  if (ds1307.read(tm))
+  {
+    printTime(tm);
+  }
+  else
+  {
+    Serial.println("DS1307 read error!  Please check the circuitry.");
+    Serial.println();
+  }
+
+  oled.clearDisplay();
+  oled.setCursor(0, 0);
+  oled.println(tm.Second);
+  oled.display();
 
   delay(900);
 }
@@ -114,23 +134,30 @@ void print2digits(int number)
   Serial.print(number);
 }
 
-bool printTime(DS1307RTC *_rtc, tmElements_t &_time)
+void printTime(tmElements_t &_time)
 {
-  if (_rtc->read(_time))
+  Serial.print("Ok, Time = ");
+  print2digits(_time.Hour);
+  Serial.write(':');
+  print2digits(_time.Minute);
+  Serial.write(':');
+  print2digits(_time.Second);
+  Serial.print(", Date (D/M/Y) = ");
+  Serial.print(_time.Day);
+  Serial.write('/');
+  Serial.print(_time.Month);
+  Serial.write('/');
+  Serial.print(tmYearToCalendar(_time.Year));
+  Serial.println();
+}
+
+bool initOLED(Adafruit_SSD1306 *_oled, uint16_t _oled_address)
+{
+  if (_oled->begin(SSD1306_SWITCHCAPVCC, _oled_address))
   {
-    Serial.print("Ok, Time = ");
-    print2digits(_time.Hour);
-    Serial.write(':');
-    print2digits(_time.Minute);
-    Serial.write(':');
-    print2digits(_time.Second);
-    Serial.print(", Date (D/M/Y) = ");
-    Serial.print(_time.Day);
-    Serial.write('/');
-    Serial.print(_time.Month);
-    Serial.write('/');
-    Serial.print(tmYearToCalendar(_time.Year));
-    Serial.println();
+    _oled->clearDisplay();
+    _oled->setTextColor(SSD1306_WHITE);
+    _oled->display();
 
     return true;
   }
