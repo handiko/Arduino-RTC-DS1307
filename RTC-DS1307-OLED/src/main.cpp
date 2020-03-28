@@ -204,7 +204,7 @@ void printTimeOLED(Adafruit_SSD1306 *_oled, tmElements_t &_time)
   _oled->println(" ");
 
   _oled->print(F("     Day:"));
-  _oled->print((char *)dayName[_time.Wday]);
+  _oled->print(dayName[_time.Wday]);
   _oled->println();
 
   _oled->display();
