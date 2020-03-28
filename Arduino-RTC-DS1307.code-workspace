@@ -6,6 +6,10 @@
 		{
 			"name": "RTC-DS1307-SetTime",
 			"path": "RTC-DS1307-SetTime"
+		},
+		{
+			"name": "RTC-DS1307-OLED",
+			"path": "RTC-DS1307-OLED"
 		}
 	],
 	"settings": {}
